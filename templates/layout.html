@@ -1,0 +1,195 @@
+<!doctype html>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link href='http://fonts.googleapis.com/css?family=Lato:100,300,400,700,900,100italic,300italic,400italic,700italic,900italic' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Arizonia' rel='stylesheet' type='text/css'>
+<title>PDB2PQR Server </title>
+<img src="https://raw.githubusercontent.com/Electrostatics/apbs-pdb2pqr/master/apbs/doc/icons/APBS_128_v2.png" style="float:right; position:relative;right: 200px; top: 20px;">
+<style type=text/css> background: url('http://www.poissonboltzmann.org/img/bg.jpg') no-repeat; background-size: cover; </style>
+<title>{% block title %}PDB2PQR server{% endblock %}</title>
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+<script LANGUAGE="JavaScript"><!--
+function check(val) {
+
+if(val == "ID")
+{
+document.thisform.PDBID.disabled=false;
+document.thisform.PDB.disabled=true;
+}
+
+else
+{
+document.thisform.PDBID.value="";
+document.thisform.PDBID.disabled=true;
+document.thisform.PDB.disabled=false;
+}
+}
+
+function setff(val){
+  if(val == "parse")
+  {
+    document.getElementById("pka_pdb2pka").disabled=false;
+    document.thisform.NEUTRALN.disabled=false;
+    document.thisform.NEUTRALC.disabled=false;
+  }
+  else
+  {
+    document.getElementById("pka_pdb2pka").disabled=true;
+    document.thisform.NEUTRALN.disabled=true;
+    document.thisform.NEUTRALC.disabled=true;
+    document.thisform.NEUTRALN.checked=false;
+    document.thisform.NEUTRALC.checked=false;
+    if(document.getElementById("pka_pdb2pka").checked==true)
+    {
+      document.getElementById("pka_none").checked=true
+    }
+  }
+  
+  if(val == "user")
+  {
+    document.thisform.USERFF.disabled=false;
+    document.thisform.USERNAMES.disabled=false;
+  }
+  else
+  {
+    document.thisform.USERFF.disabled=true;
+    document.thisform.USERNAMES.disabled=true;
+  }
+}
+
+
+function setpkamethod(val){
+if(val == "propka" || val == "none")
+{
+  if (val == "none")
+  {
+    document.thisform.PH.disabled=true;
+  }
+  else
+  {
+    document.thisform.PH.disabled=false;
+  }
+  if (document.thisform.NEUTRALN.checked!=true && document.thisform.NEUTRALC.checked!=true)
+  {
+  document.getElementById("amber").disabled=false;
+  document.getElementById("charmm").disabled=false;
+  document.getElementById("peoepb").disabled=false;
+  document.getElementById("swanson").disabled=false;
+  document.getElementById("tyl06").disabled=false;
+  document.getElementById("user").disabled=false;
+  document.thisform.LIGAND.disabled=false;
+  document.thisform.LIGANDCHECK.disabled=false;
+  }
+  else
+  {
+  document.thisform.LIGAND.disabled=false;
+  document.thisform.LIGANDCHECK.disabled=false
+  }
+}
+else if(document.getElementById("pka_pdb2pka").checked==true)
+{
+  document.thisform.PH.disabled=false;
+  document.getElementById("parse").checked=true;
+  document.getElementById("amber").disabled=true;
+  document.getElementById("charmm").disabled=true;
+  document.getElementById("peoepb").disabled=true;
+  document.getElementById("swanson").disabled=true;
+  document.getElementById("tyl06").disabled=true;
+  document.getElementById("user").disabled=true;
+  document.thisform.LIGAND.disabled=true;
+  document.thisform.LIGANDCHECK.disabled=true;
+  document.thisform.LIGANDCHECK.checked=false;
+}
+}
+
+
+function setligand(){
+if(document.thisform.LIGANDCHECK.checked==true)
+{
+document.thisform.LIGAND.disabled=false;
+}
+else
+{
+document.thisform.LIGAND.disabled=true;
+}
+}
+
+function setneutraln(){
+if(document.thisform.NEUTRALN.checked==true)
+{
+document.getElementById("parse").checked=true;
+document.getElementById("amber").disabled=true;
+document.getElementById("charmm").disabled=true;
+document.getElementById("peoepb").disabled=true;
+document.getElementById("swanson").disabled=true;
+document.getElementById("tyl06").disabled=true;
+document.getElementById("user").disabled=true;
+}
+else
+{
+  if(document.getElementById("pka_pdb2pka").checked!=true && document.thisform.NEUTRALC.checked!=true && document.thisform.NEUTRALN.checked!=true)
+  {
+  document.getElementById("amber").disabled=false;
+  document.getElementById("charmm").disabled=false;
+  document.getElementById("peoepb").disabled=false;
+  document.getElementById("swanson").disabled=false;
+  document.getElementById("tyl06").disabled=false;
+  document.getElementById("user").disabled=false;
+  }
+}
+}
+
+function setneutralc(){
+if(document.thisform.NEUTRALC.checked==true)
+{
+document.getElementById("parse").checked=true;
+document.getElementById("amber").disabled=true;
+document.getElementById("charmm").disabled=true;
+document.getElementById("peoepb").disabled=true;
+document.getElementById("swanson").disabled=true;
+document.getElementById("tyl06").disabled=true;
+document.getElementById("user").disabled=true;
+}
+else
+{
+  if(document.getElementById("pka_pdb2pka").checked!=true && document.thisform.NEUTRALC.checked!=true && document.thisform.NEUTRALN.checked!=true)
+  {
+  document.getElementById("amber").disabled=false;
+  document.getElementById("charmm").disabled=false;
+  document.getElementById("peoepb").disabled=false;
+  document.getElementById("swanson").disabled=false;
+  document.getElementById("tyl06").disabled=false;
+  document.getElementById("user").disabled=false;
+  }
+}
+}
+//-->
+</script>
+<div class="page">
+  <div id="cursor"></div>
+  <div id="content">
+    <h1>PDB2PQR server</h1>
+    <p><i>Currently using PDB2PQR version {{ g.pdb2pqr_version }}.</i> See the <a href="https://github.com/Electrostatics/apbs-pdb2pqr/releases/tag/pdb2pqr-2.1.0_release" target="BLANK">Release Notes</a> for changes since the last version.</p>
+    <p>Return to the <a href="http://www.poissonboltzmann.org/docs/structures-ready/" target="_pdb2pqr_home">PDB2PQR homepage</a></p>
+    <hr/> 
+    <p>This server enables a user to convert <a href="http://www.rcsb.org/pdb/" target="_pdb">PDB</a> files into PQR files.
+    PQR files are PDB files where the occupancy and B-factor columns have been replaced by per-atom charge and radius.</p>
+    <p>pKa calculations can be performed by <a href="https://github.com/jensengroup/propka-3.1"target="BLANK">PROPKA</a> or PDB2PKA.</p>
+    <p>For more information on PDB2PQR please see:</p>
+    <ul>
+      <li> <a href="http://www.poissonboltzmann.org/docs/structures-ready/" target="_pdb2pqr_home">Home Page</a> </li>
+      <li> <a href="http://eepurl.com/by4eQr" target="_register">Register (and help suport PDB2PQR &amp; APBS)</a> </li>
+      <li> <a href="http://www.poissonboltzmann.org/docs/pdb2pqr-programmers/" target="_programmers">Programmer's Guide</a> </li>
+      <li> <a href="http://www.poissonboltzmann.org/examples/home/" target="_examples">Examples</a> </li>
+      <li> <a href="https://github.com/Electrostatics/apbs-pdb2pqr/releases/tag/pdb2pqr-2.1.0_release"target="BLANK">Release Notes</a> </li>
+    </ul>
+    <p>If you use the PDB2PQR service in a publication, please cite:</p>
+    <blockquote>Dolinsky TJ, Nielsen JE, McCammon JA, Baker NA. PDB2PQR: an automated pipeline for the setup, execution, and analysis of Poisson-Boltzmann electrostatics calculations. <I>Nucleic Acids Research</I> <B>32</B> W665-W667 (2004). [<a href="http://nar.oupjournals.org/cgi/content/abstract/32/suppl_2/W665" target="BLANK">Link</a>]
+    </blockquote>
+    <hr/>
+    {% block body %}{% endblock %}
+  </div>
+  <div class="footer">
+    <center>PDB2PQR server &mdash; a <a href="http://flask.pocoo.org/" target="_flask">Flask</a> application.</center>
+  </div>
+</div>
