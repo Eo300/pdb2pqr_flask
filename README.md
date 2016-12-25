@@ -9,8 +9,8 @@ The code is not functional and is intended as a prototype.  Here are the current
 pip install --upgrade flask
 export FLASK_APP=server.py
 export FLASK_DEBUG=1
-flask initdb
-flask run
+python -m flask setup
+python -m flask run
 ```
 
 Point your browser to <http://127.0.0.1:5000/> and hope for the best!

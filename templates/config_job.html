@@ -4,7 +4,23 @@
   <h2>Configure your PDB2PQR job</h2>
   
   <p>{% if error %}<div class="error"><strong>Error:</strong> {{ error }}</div>{% endif %}</p>
-  
+
+  <p>This server enables a user to convert <a href="http://www.rcsb.org/pdb/" target="_pdb">PDB</a> files into PQR files.
+  PQR files are PDB files where the occupancy and B-factor columns have been replaced by per-atom charge and radius.</p>
+  <p>pKa calculations can be performed by <a href="https://github.com/jensengroup/propka-3.1"target="BLANK">PROPKA</a> or PDB2PKA.</p>
+  <p>For more information on PDB2PQR please see:</p>
+  <ul>
+    <li> <a href="http://www.poissonboltzmann.org/docs/structures-ready/" target="_pdb2pqr_home">Home Page</a> </li>
+    <li> <a href="http://eepurl.com/by4eQr" target="_register">Register (and help suport PDB2PQR &amp; APBS)</a> </li>
+    <li> <a href="http://www.poissonboltzmann.org/docs/pdb2pqr-programmers/" target="_programmers">Programmer's Guide</a> </li>
+    <li> <a href="http://www.poissonboltzmann.org/examples/home/" target="_examples">Examples</a> </li>
+    <li> <a href="https://github.com/Electrostatics/apbs-pdb2pqr/releases/tag/pdb2pqr-2.1.0_release"target="BLANK">Release Notes</a> </li>
+  </ul>
+  <p>If you use the PDB2PQR service in a publication, please cite:</p>
+  <blockquote>Dolinsky TJ, Nielsen JE, McCammon JA, Baker NA. PDB2PQR: an automated pipeline for the setup, execution, and analysis of Poisson-Boltzmann electrostatics calculations. <I>Nucleic Acids Research</I> <B>32</B> W665-W667 (2004). [<a href="http://nar.oupjournals.org/cgi/content/abstract/32/suppl_2/W665" target="BLANK">Link</a>]
+  </blockquote>
+  <hr/>
+
   <p><strong>Note:</strong> In order to manage server load, the PDB2PQR server currently is limited to a maximum size of 10000 atoms per protein.
   If you are interested in using PDB2PQR for larger proteins, you are encouraged to download a command line version of PDB2PQR from the <a href="http://www.poissonboltzmann.org/docs/downloads/" target="_downloads">PDB2PQR download page</a>.
   For additional limitations, please see the <a href="http://www.poissonboltzmann.org/docs/pdb2pqr-programmers/" target="_programmers">PDB2PQR user guide</a></p>
@@ -66,14 +82,14 @@
 
     <h3>Please specify the titration state calculation options</h3>
     <ul>
-      <li><input type="RADIO" name="PKACALCMETHOD" value="none" id="pka_none">No pKa calculation</input></li>
-      <li>Use pH = <input type="text" name="PH" size=4 maxlength=6  value="7"></input></li>
       <li>Assign titration states for the given pH using:
         <ul>
+          <li><input type="RADIO" name="PKACALCMETHOD" value="none" id="pka_none">No pKa calculation</input></li>
           <li><input type="RADIO" name="PKACALCMETHOD" value="propka" id="pka_propka" CHECKED> <a href="https://github.com/jensengroup/propka-3.1" target="BLANK">PROPKA</a></input></li>
           <li><input type="RADIO" name="PKACALCMETHOD" value="pdb2pka" id="pka_pdb2pka" onClick="setpkamethod(this.value)">PDB2PKA</input>  <label>(Warning: PDB2PKA is currently experimental and the calculation can take a very long time.  The webserver will kill any jobs that last longer than one week.  This works only with the PARSE force field.)</label></li>
         </ul>
       </li>
+      <li>Use pH = <input type="text" name="PH" size=4 maxlength=6  value="7"></input></li>
     </ul>
     <div class="actions"><input type="submit" value="Submit"></div>
   </form>

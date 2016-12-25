@@ -10,14 +10,25 @@
 """
 
 import time
+import os, os.path
+import json
 from sqlite3 import dbapi2 as sqlite3
 from datetime import datetime
 from flask import Flask, request, session, url_for, redirect, \
-     render_template, abort, g, flash, _app_ctx_stack
+     render_template, abort, g, flash, _app_ctx_stack, \
+     send_from_directory
+from werkzeug.utils import secure_filename
 
 # Configuration
-DATABASE = '/tmp/pdb2pqr_server.db'
+""" Database file """
+DATABASE_DIR = os.path.normpath("./data")
+DATABASE = os.path.join(DATABASE_DIR, "pdb2pqr_server.db")
+""" Upload directory """
+UPLOADS_DIR = os.path.normpath("./uploads")
+""" Debug status """
 DEBUG = True
+""" PDB2PQR version number (should be replaced automatically) """
+# TODO - replace this with auto-configured version number
 PDB2PQR_VERSION = "13.666"
 
 # Create the application
@@ -25,13 +36,51 @@ app = Flask(__name__)
 app.config.from_object(__name__)
 app.config.from_envvar('PDB2PQR_SETTINGS', silent=True)
 
+# TODO - move some of this to a utils module
+
+def store_files(file_dict, job_id):
+    """ Store uploaded files """
+    upload_dir = app.config["UPLOADS_DIR"]
+    storage_dict = {}
+    for key, file_obj in file_dict.items():
+        file_name = secure_filename(file_obj.filename)
+        if file_name:
+            file_name = "%s-%s" % (job_id, file_name)
+            file_path = os.path.join(upload_dir, file_name)
+            print(file_path)
+            file_obj.save(file_path)
+            storage_dict[key] = url_for("uploaded_file", filename=file_name)
+    return storage_dict
+
+@app.route('/%s/<filename>' % UPLOADS_DIR)
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOADS_DIR'], filename)
+
+def set_job_id(_time=None):
+    """
+        Given a floating point time.time(), generate a job ID.
+        Use the tenths of a second to differentiate.
+        Parameters
+            time:  The current time.time() (float)
+        Returns
+            id  :  The file id (string)
+    """
+    if not _time:
+        _time = time.time()
+    strID = "%s" % _time
+    period = strID.find(".")
+    _id = "%s%s" % (strID[:period], strID[(period+1):(period+2)])
+    print(_time, _id)
+    return _id
+
 
 def get_db():
     """ Opens a new database connection if there is none yet for the
     current application context. """
+    database_path = app.config["DATABASE"]
     top = _app_ctx_stack.top
     if not hasattr(top, 'sqlite_db'):
-        top.sqlite_db = sqlite3.connect(app.config['DATABASE'])
+        top.sqlite_db = sqlite3.connect(database_path)
         top.sqlite_db.row_factory = sqlite3.Row
     return top.sqlite_db
 
@@ -44,19 +93,24 @@ def close_database(exception):
         top.sqlite_db.close()
 
 
-def init_db():
-    """ Initializes the database. """
+def setup():
+    """ Initializes the database, creates directories, etc. """
+    for path in [app.config["DATABASE_DIR"], app.config["UPLOADS_DIR"]]:
+        print("Checking %s..." % path)
+        if not os.path.exists(path):
+            print("Creating %s..." % path)
+            os.makedirs(path)
+    print("Initializing database...")
     db = get_db()
     with app.open_resource('schema.sql', mode='r') as f:
         db.cursor().executescript(f.read())
     db.commit()
 
 
-@app.cli.command('initdb')
-def initdb_command():
-    """ Creates the database tables. """
-    init_db()
-    print('Initialized the database.')
+@app.cli.command('setup')
+def setup_command():
+    """ Creates the database tables, directories, etc. """
+    setup()
 
 
 def query_db(query, args=(), one=False):
@@ -69,9 +123,9 @@ def query_db(query, args=(), one=False):
 @app.before_request
 def before_request():
     g.job_id = None
-    if 'user_id' in session:
+    if 'job_id' in session:
         # TODO - this should display the starting screen and/or database
-        pass
+        return "Got a before_request() call..."
 
 
 @app.route('/', methods=["GET", "POST"])
@@ -85,90 +139,14 @@ def server_main():
         return redirect(url_for('job_status'))
     elif request.method == "POST":
         # TODO - launch job
-        _str = "I saw the fnord!\n"
-        _str = _str + "%s\n" % dir(request)
-        _str = _str + "%s\n" % request.form
-        return _str
+        g.job_id = set_job_id()
+        file_dict = store_files(request.files, g.job_id)
+        print(request.files)
+        print(request.form)
+        return render_template("start_job.html", job_id=g.job_id, form=request.form, files=file_dict)
     else:
         return render_template("config_job.html")
 
-@app.route('/job_status')
-def job_status():
-    """Displays the latest messages of all users."""
-    return render_template('job_status.html', job_id=g.job_id)
-
-
-@app.route('/database')
-def dump_data(username):
-    """Display's a users tweets."""
-    # TODO - show data from database
-    abort(404)
-
-
-@app.route('/add_message', methods=['POST'])
-def add_message():
-    """Registers a new message for the user."""
-    if 'user_id' not in session:
-        abort(401)
-    if request.form['text']:
-        db = get_db()
-        db.execute('''insert into message (author_id, text, pub_date)
-          values (?, ?, ?)''', (session['user_id'], request.form['text'],
-                                int(time.time())))
-        db.commit()
-        flash('Your message was recorded')
-    return redirect(url_for('timeline'))
-
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    """Logs the user in."""
-    if g.user:
-        return redirect(url_for('timeline'))
-    error = None
-    if request.method == 'POST':
-        user = query_db('''select * from user where
-            username = ?''', [request.form['username']], one=True)
-        if user is None:
-            error = 'Invalid username'
-        elif not check_password_hash(user['pw_hash'],
-                                     request.form['password']):
-            error = 'Invalid password'
-        else:
-            flash('You were logged in')
-            session['user_id'] = user['user_id']
-            return redirect(url_for('timeline'))
-    return render_template('login.html', error=error)
-
-
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    """Registers the user."""
-    if g.user:
-        return redirect(url_for('timeline'))
-    error = None
-    if request.method == 'POST':
-        if not request.form['username']:
-            error = 'You have to enter a username'
-        elif not request.form['email'] or \
-                '@' not in request.form['email']:
-            error = 'You have to enter a valid email address'
-        elif not request.form['password']:
-            error = 'You have to enter a password'
-        elif request.form['password'] != request.form['password2']:
-            error = 'The two passwords do not match'
-        elif get_user_id(request.form['username']) is not None:
-            error = 'The username is already taken'
-        else:
-            db = get_db()
-            db.execute('''insert into user (
-              username, email, pw_hash) values (?, ?, ?)''',
-              [request.form['username'], request.form['email'],
-               generate_password_hash(request.form['password'])])
-            db.commit()
-            flash('You were successfully registered and can login now')
-            return redirect(url_for('login'))
-    return render_template('register.html', error=error)
 
 # add some filters to jinja
 # app.jinja_env.filters['datetimeformat'] = format_datetime
