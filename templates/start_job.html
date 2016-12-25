@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+{% block title %}PDB2PQR server:  starting job{% endblock %}
+{% block body %}
+  <h2>Starting your PDB2PQR job...</h2>
+  
+  <p>{% if error %}<div class="error"><strong>Error:</strong> {{ error }}</div>{% endif %}</p>
+
+  <p>Your job status and results will appear <a href="/jobs/{{ job_id }}">here</a> shortly.</p>
+
+  <hr/>
+
+  <h2>Job information</h2>
+
+  <h3>Job ID</h3>
+  <p>{{ job_id }}</p>
+
+  <h3>Job options</h3>
+  <dl>
+    {% for key, value in form.items() %}
+      <dt>{{ key }}</dt>
+      <dd>{{ value }}</dd>
+    {% endfor %}
+  </dl>
+
+  <h3>Uploaded files</h3>
+  <dl>
+    {% for key, value in files.items() %}
+      <dt>{{ key }}</dt>
+      <dd><a href="{{ value }}">{{ value }}</a></dd>
+    {% endfor %}
+  </dl>
+
+{% endblock %}
