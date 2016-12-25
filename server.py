@@ -85,8 +85,10 @@ def server_main():
         return redirect(url_for('job_status'))
     elif request.method == "POST":
         # TODO - launch job
-        print(request)
-        pass
+        _str = "I saw the fnord!\n"
+        _str = _str + "%s\n" % dir(request)
+        _str = _str + "%s\n" % request.form
+        return _str
     else:
         return render_template("config_job.html")
 

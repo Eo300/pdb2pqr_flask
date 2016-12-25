@@ -13,61 +13,68 @@
   Do not use the <i>back</i> button on your browser while the server is running.</p>
 
   <form action="" method="post" enctype="multipart/form-data">
-    <p>Please specify the molecule for your calculation:</p>
-    <blockquote>
-      <input type="RADIO" name="PDBSOURCE" value="ID" onClick="check(this.value)" CHECKED>a PDB ID</input>: <input type="text" name="PDBID" size=4 maxlength=6 value=""> <br/>
-      <input type="RADIO" name="PDBSOURCE" value="UPLOAD" onClick="check(this.value)">upload a PDB file</input>: <input type="file" name="PDB" size="25" maxlength=100 value="" DISABLED>
-    </blockquote>
+    <!-- TODO:  make this less ugly with a DIV -->
+    <!-- TODO:  fix the broken javascript -->
 
-    <p>Please specify the parameter set (force field) for your calculation:</p>
-    <blockquote>
-      <input type="RADIO" name="FF" id = "amber" value="amber" onClick="setff(this.value)">AMBER</input><br/> 
-      <input type="RADIO" name="FF" id = "charmm" value="charmm" onClick="setff(this.value)">CHARMM</input><br/>
-      <input type="RADIO" name="FF" id = "parse" value="parse" onClick="setff(this.value)" CHECKED >PARSE</input><br/>
-      <input type="RADIO" name="FF" id = "peoepb" value="peoepb" onClick="setff(this.value)">PEOEPB</input><br/>
-      <input type="RADIO" name="FF" id = "swanson" value="swanson" onClick="setff(this.value)">SWANSON</input><br/> 
-      <input type="RADIO" name="FF" id = "tyl06" value="tyl06" onClick="setff(this.value)">TYL06</input><br/>
-      <input type="RADIO" name="FF" id = "user" value="user" onClick="setff(this.value)">User-defined forcefield (<a href="http://www.poissonboltzmann.org/docs/pdb2pqr-faq/" target="BLANK">help</a>): <input type="file" name="USERFF" size="25" maxlength=100 value="" DISABLED><br/>
-      <label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;User-defined names (<a href="http://www.poissonboltzmann.org/docs/pdb2pqr-faq/" target="BLANK">help</a>):</label> <input type="file" name="USERNAMES" size="25" maxlength=100 value="" DISABLED><br/>
-      <label>&nbsp;&nbsp;* If you select user-defined forcefield, you also need to specify a user-defined .names file.</label><br/> 
-    </blockquote>
+    <h3>Please specify the molecule for your calculation</h3>
+    <ul>
+      <li><input type="RADIO" name="PDBSOURCE" value="ID" CHECKED>a PDB ID</input>: <input type="text" name="PDBID" size=4 maxlength=6 value=""></li>
+      <li><input type="RADIO" name="PDBSOURCE" value="UPLOAD">upload a PDB file</input>: <input type="file" name="PDB" size="25" maxlength=100 value=""/></li>
+    </ul>
 
-    <p>Please pick a residue/atom naming scheme for your output (<a href="http://www.poissonboltzmann.org/docs/pdb2pqr-faq/" target="BLANK">help</a>):</p>
-    <blockquote>
-      <input type="RADIO" name="FFOUT" value="internal" CHECKED>Internal naming scheme</input> (<a href="http://www.poissonboltzmann.org/docs/pdb2pqr-programmers/" target="BLANK">What's this?</a>)<br/>
-      <input type="RADIO" name="FFOUT" value="amber">AMBER</input><br/>
-      <input type="RADIO" name="FFOUT" value="charmm">CHARMM</input><br/>
-      <input type="RADIO" name="FFOUT" value="parse">PARSE</input><br/>
-      <input type="RADIO" name="FFOUT" value="peoepb">PEOEPB</input><br/>
-      <input type="RADIO" name="FFOUT" value="swanson">SWANSON</input><br/>
-      <input type="RADIO" name="FFOUT" value="tyl06">TYL06</input>
-    </blockquote>
+    <h3>Please specify the parameter set (force field) for your calculation</h3>
+    <ul>
+      <li><input type="RADIO" name="FF" id = "amber" value="amber">AMBER</input></li>
+      <li><input type="RADIO" name="FF" id = "charmm" value="charmm">CHARMM</input></li>
+      <li><input type="RADIO" name="FF" id = "parse" value="parse" CHECKED>PARSE</input></li>
+      <li><input type="RADIO" name="FF" id = "peoepb" value="peoepb">PEOEPB</input></li>
+      <li><input type="RADIO" name="FF" id = "swanson" value="swanson">SWANSON</input></li>
+      <li><input type="RADIO" name="FF" id = "tyl06" value="tyl06">TYL06</input></li>
+      <li><input type="RADIO" name="FF" id = "user" value="user">User-defined
+        <ul>
+          <li>Forcefield (<a href="http://www.poissonboltzmann.org/docs/pdb2pqr-faq/" target="_faq">help</a>): <input type="file" name="USERFF" size="25" maxlength=100 value=""/></li>
+          <li>Names (<a href="http://www.poissonboltzmann.org/docs/pdb2pqr-faq/" target="_faq">help</a>): <input type="file" name="USERNAMES" size="25" maxlength=100 value=""></li>
+        </ul>
+      </li>
+    </ul>
 
-    <p>Structure repair calculation options:</p>
-    <blockquote>
-      <input type="CHECKBOX" name="DEBUMP" CHECKED> Ensure that new atoms are not rebuilt too close to existing atoms<br/>
-      <input type="CHECKBOX" name="OPT" CHECKED onClick="setwatopt()"> Optimize the hydrogen bonding network<br/>
-      <input type="CHECKBOX" name="LIGANDCHECK" onClick="setligand()"> Assign charges to the ligand specified in a MOL2 file</input>: <input type="file" name="LIGAND" size="25" maxlength=100 value="" DISABLED><br/>
-      <input type="CHECKBOX" name="INPUT" CHECKED> Create an <a href="http://www.poissonboltzmann.org/docs/calculating/" target="BLANK">APBS</a> input file <span style="font-size:60%">(this also enables the option to run APBS and visualize your results through the web interface, if it has been installed)</span><br/>
-      <input type="CHECKBOX" name="CHAIN"> Add/keep chain IDs in the PQR file<br/>
-      <input type="CHECKBOX" name="WHITESPACE"> Insert whitespaces between atom name and residue name, between x and y, and between y and z<br/>
-      <input type="CHECKBOX" name="TYPEMAP"> Create Typemap output<br/>
-      <input type="CHECKBOX" name="NEUTRALN" onClick="setneutraln()"> Make the protein's N-terminus neutral (requires PARSE forcefield)<br/>
-      <input type="CHECKBOX" name="NEUTRALC" onClick="setneutralc()"> Make the protein's C-terminus neutral (requires PARSE forcefield)<br/>
-      <input type="CHECKBOX" name="DROPWATER"> Remove the waters from the output file
-    </blockquote>
+    <h3>Please pick a residue/atom naming scheme for your output</h3>
+    <p>See <a href="http://www.poissonboltzmann.org/docs/pdb2pqr-faq/" target="_faq">the FAQ</a> for help.</p>
+    <ul>
+      <li><input type="RADIO" name="FFOUT" value="internal" CHECKED>Internal naming scheme</input> (<a href="http://www.poissonboltzmann.org/docs/pdb2pqr-programmers/" target="_programmer">What's this?</a>)</li>
+      <li><input type="RADIO" name="FFOUT" value="amber">AMBER</input></li>
+      <li><input type="RADIO" name="FFOUT" value="charmm">CHARMM</input></li>
+      <li><input type="RADIO" name="FFOUT" value="parse">PARSE</input></li>
+      <li><input type="RADIO" name="FFOUT" value="peoepb">PEOEPB</input></li>
+      <li><input type="RADIO" name="FFOUT" value="swanson">SWANSON</input></li>
+      <li><input type="RADIO" name="FFOUT" value="tyl06">TYL06</input></li>
+    </ul>
 
-    <p>Titration state calculation options*:</p>
-    <blockquote>
-      Use pH <input type="text" name="PH" size=4 maxlength=6  value="7"></input><br/>
-      <input type="RADIO" name="PKACALCMETHOD" value="none" id="pka_none" onClick="setpkamethod(this.value)"> No pKa calculation</input><br/>
-      <input type="RADIO" name="PKACALCMETHOD" value="propka" id="pka_propka" onClick="setpkamethod(this.value)" CHECKED> Use <a href="https://github.com/jensengroup/propka-3.1" target="BLANK">PROPKA</a> to assign protonation states at provided pH</input><br/>
-      <input type="RADIO" name="PKACALCMETHOD" value="pdb2pka" id="pka_pdb2pka" onClick="setpkamethod(this.value)"> Use PDB2PKA to parametrize ligands and assign pKa values (requires PARSE forcefield) at provided pH</input><br/>
+    <h3>Please specify the structure repair calculation options</h3>
+    <ul>
+      <li><input type="CHECKBOX" name="DEBUMP" CHECKED> Ensure that new atoms are not rebuilt too close to existing atoms</li>
+      <li><input type="CHECKBOX" name="OPT" CHECKED> Optimize the hydrogen bonding network</li>
+      <li><input type="CHECKBOX" name="LIGANDCHECK"> Assign charges to the ligand specified in a MOL2 file</input>: <input type="file" name="LIGAND" size="25" maxlength=100 value=""></li>
+      <li><input type="CHECKBOX" name="INPUT" CHECKED> Create an <a href="http://www.poissonboltzmann.org/docs/calculating/" target="_apbs">APBS</a> input file <span style="font-size:60%">(this also enables the option to run APBS and visualize your results through the web interface, if it has been installed)</span></li>
+      <li><input type="CHECKBOX" name="CHAIN"> Add/keep chain IDs in the PQR file</li>
+      <li><input type="CHECKBOX" name="WHITESPACE"> Insert whitespaces between atom name and residue name, between x and y, and between y and z</li>
+      <li><input type="CHECKBOX" name="TYPEMAP"> Create Typemap output</li>
+      <li><input type="CHECKBOX" name="NEUTRALN"> Make the protein's N-terminus neutral (requires PARSE forcefield)</li>
+      <li><input type="CHECKBOX" name="NEUTRALC"> Make the protein's C-terminus neutral (requires PARSE forcefield)</li>
+      <li><input type="CHECKBOX" name="DROPWATER"> Remove the waters from the output file</li>
+    </ul>
 
-      <p><label>&nbsp;&nbsp;* Warning: PDB2PKA is currently experimental and the calculation can take a very long time.
-      The webserver will kill any jobs that last longer than one week. </label></p>
-    </blockquote>
-
+    <h3>Please specify the titration state calculation options</h3>
+    <ul>
+      <li><input type="RADIO" name="PKACALCMETHOD" value="none" id="pka_none">No pKa calculation</input></li>
+      <li>Use pH = <input type="text" name="PH" size=4 maxlength=6  value="7"></input></li>
+      <li>Assign titration states for the given pH using:
+        <ul>
+          <li><input type="RADIO" name="PKACALCMETHOD" value="propka" id="pka_propka" CHECKED> <a href="https://github.com/jensengroup/propka-3.1" target="BLANK">PROPKA</a></input></li>
+          <li><input type="RADIO" name="PKACALCMETHOD" value="pdb2pka" id="pka_pdb2pka" onClick="setpkamethod(this.value)">PDB2PKA</input>  <label>(Warning: PDB2PKA is currently experimental and the calculation can take a very long time.  The webserver will kill any jobs that last longer than one week.  This works only with the PARSE force field.)</label></li>
+        </ul>
+      </li>
+    </ul>
     <div class="actions"><input type="submit" value="Submit"></div>
   </form>
 {% endblock %}
