@@ -38,10 +38,10 @@ def before_request():
     g.job_id = None
 
 
-# @app.cli.command('setup')
-# def setup_command():
-#     """ Creates the database tables, directories, etc. """
-#     setup()
+@app.cli.command('setup')
+def setup_command():
+    """ Creates the database tables, directories, etc. """
+    setup()
 
 
 @app.route('/%s/<filename>' % app.config["JOBS_DIR"])
