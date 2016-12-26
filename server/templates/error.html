@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+{% block title %}PDB2PQR server:  something went wrong.{% endblock %}
+{% block body %}
+  <h2>Oops...</h2>
+  
+  <p>{% if error %}<div class="error"><strong>Error:</strong> {{ error }}</div>{% endif %}</p>
+
+  <p>Something went wrong.  Please contact <a href="http://www.poissonboltzmann.org/support/home/">PDB2PQR support</a></p>
+
+  <p>Sorry about that!</p>
+
+  <hr/>
+
+{% endblock %}

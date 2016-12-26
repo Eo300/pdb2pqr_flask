@@ -38,10 +38,10 @@ def before_request():
     g.job_id = None
 
 
-# @app.cli.command('setup')
-# def setup_command():
-#     """ Creates the database tables, directories, etc. """
-#     setup()
+@app.cli.command('setup')
+def setup_command():
+    """ Creates the database tables, directories, etc. """
+    setup()
 
 
 @app.route('/%s/<filename>' % app.config["JOBS_DIR"])
@@ -64,9 +64,41 @@ def server_main():
         g.job_id = utils.set_job_id()
         file_dict = utils.store_files(file_dict=request.files, job_id=g.job_id,
                                       job_dir=app.config["JOBS_DIR"])
-        utils.save_options(form_dict=request.form, job_id=g.job_id,
-                           file_dict=file_dict, job_dir=app.config["JOBS_DIR"])
+        web_options = utils.WebOptions(file_dict=file_dict,
+                                       form_dict=request.form)
+        web_options.save_options(job_id=g.job_id,
+                                 job_dir=app.config["JOBS_DIR"])
         return render_template("start_job.html", job_id=g.job_id,
                                form=request.form, files=file_dict)
     else:
         return render_template("config_job.html")
+
+
+@app.errorhandler(403)
+def forbidden_handler(e):
+    """ 403 error handler """
+    return utils.generic_error(e, code=403)
+
+
+@app.errorhandler(404)
+def file_not_found_handler(e):
+    """ 404 error handler """
+    return utils.generic_error(e, code=404)
+
+
+@app.errorhandler(410)
+def gone_handler(e):
+    """ 410 error handler """
+    return utils.generic_error(e, code=410)
+
+
+@app.errorhandler(500)
+def internal_handler(e):
+    """ 500 error handler """
+    return utils.generic_error(e, code=500)
+
+
+@app.errorhandler(utils.WebOptionsError)
+def webopt_handler(e):
+    """ Something went wrong parsing web options """
+    return utils.generic_error(e, code=500)
