@@ -8,6 +8,4 @@
     :copyright: (c) 2016 Battelle, etc.
     :license: BSD, see LICENSE for more details.
 """
-from .server import APP
-
-__all__ = ["config", "server", "utils"]
+from .server import app

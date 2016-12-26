@@ -6,10 +6,9 @@ This particular code was shamelessly <strike>ripped off from</strike> modeled af
 The code is not functional and is intended as a prototype.  Here are the current steps to get it "working" (assuming a Bash environment); a [virtualenv](https://virtualenv.pypa.io/en/stable/) is strongly recommended.
 
 ```
-pip install --upgrade flask
-export FLASK_APP=server.py
+pip install --editable .
+export FLASK_APP=server
 export FLASK_DEBUG=1
-python -m flask setup
 python -m flask run
 ```
 
