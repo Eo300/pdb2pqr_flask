@@ -62,11 +62,11 @@ def server_main():
     elif request.method == "POST":
         # TODO - launch job
         g.job_id = utils.set_job_id()
-        file_dict = utils.store_files(file_dict=request.files, job_id=g.job_id,
+        file_dict = utils.store_uploads(file_dict=request.files, job_id=g.job_id,
                                       job_dir=app.config["JOBS_DIR"])
         web_options = utils.WebOptions(file_dict=file_dict,
                                        form_dict=request.form)
-        web_options.save_options(job_id=g.job_id,
+        web_options.save_json(job_id=g.job_id,
                                  job_dir=app.config["JOBS_DIR"])
         return render_template("start_job.html", job_id=g.job_id,
                                form=request.form, files=file_dict)
