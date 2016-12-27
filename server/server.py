@@ -9,45 +9,38 @@
     :license: BSD, see LICENSE for more details.
 """
 
-import os
-import os.path
-from flask import Flask, request, url_for, redirect, render_template, \
-     g, send_from_directory
+from flask import Flask, request, render_template, g, send_from_directory
 from . import utils
-from . import config
+from . import job
 
 
 # Create the application
 app = Flask(__name__)
-app.config.from_object(config)
-app.config.from_envvar('PDB2PQR_SETTINGS', silent=True)
-
-
-def setup():
-    """ Initializes the database, creates directories, etc. """
-    for path in [app.config["JOBS_DIR"]]:
-        print("Checking %s..." % path)
-        if not os.path.exists(path):
-            print("Creating %s..." % path)
-            os.makedirs(path)
+app.config["DEBUG"] = True
+_TMP_PATH = app.instance_path
+# TODO - Assign version number automatically
+_PDB2PQR_VERSION = "13.666"
 
 
 @app.before_request
 def before_request():
     """ Set up globals before request processed """
-    g.job_id = None
+    g.job = None
 
+@app.route("/job/<jobid>")
+def job_status(jobid):
+    """ Update job status """
+    # TODO - dynamically check for job status
+    job_status = job.STATUS_DIED
+    job_files = utils.job_files(tmp_path=_TMP_PATH, job_id=jobid)
+    return render_template("job_status.html", job_id=jobid, job_files=job_files,
+                           job_status=job_status)
 
-@app.cli.command('setup')
-def setup_command():
-    """ Creates the database tables, directories, etc. """
-    setup()
-
-
-@app.route('/%s/<filename>' % app.config["JOBS_DIR"])
-def job_file(filename):
+@app.route('/job/<jobid>/<filename>')
+def job_file(filename, jobid):
     """ Deliver a job file """
-    return send_from_directory(app.config['JOBS_DIR'], filename)
+    path = utils.local_job_dir(tmp_path=_TMP_PATH, job_id=jobid)
+    return send_from_directory(path, filename)
 
 
 @app.route('/', methods=["GET", "POST"])
@@ -56,49 +49,41 @@ def server_main():
     # TODO - I'm debugging here
     print(request.remote_addr)
     # TODO - this configuration should happen somewhere else
-    g.pdb2pqr_version = app.config["PDB2PQR_VERSION"]
-    if g.job_id:
-        return redirect(url_for('job_status'))
-    elif request.method == "POST":
+    if request.method == "POST":
         # TODO - launch job
-        g.job_id = utils.set_job_id()
-        file_dict = utils.store_uploads(file_dict=request.files, job_id=g.job_id,
-                                      job_dir=app.config["JOBS_DIR"])
-        web_options = utils.WebOptions(file_dict=file_dict,
-                                       form_dict=request.form)
-        web_options.save_json(job_id=g.job_id,
-                                 job_dir=app.config["JOBS_DIR"])
-        return render_template("start_job.html", job_id=g.job_id,
-                               form=request.form, files=file_dict)
+        wopts = job.Job(req_files=request.files, req_form=request.form, tmp_path=_TMP_PATH)
+        wopts.save_json()
+        job_files = utils.job_files(tmp_path=_TMP_PATH, job_id=wopts.job_id)
+        return render_template("start_job.html", job_id=wopts.job_id, job_files=job_files)
     else:
         return render_template("config_job.html")
 
 
 @app.errorhandler(403)
-def forbidden_handler(e):
+def forbidden_handler(error):
     """ 403 error handler """
-    return utils.generic_error(e, code=403)
+    return utils.generic_error(error, code=403)
 
 
 @app.errorhandler(404)
-def file_not_found_handler(e):
+def file_not_found_handler(error):
     """ 404 error handler """
-    return utils.generic_error(e, code=404)
+    return utils.generic_error(error, code=404)
 
 
 @app.errorhandler(410)
-def gone_handler(e):
+def gone_handler(error):
     """ 410 error handler """
-    return utils.generic_error(e, code=410)
+    return utils.generic_error(error, code=410)
 
 
 @app.errorhandler(500)
-def internal_handler(e):
+def internal_handler(error):
     """ 500 error handler """
-    return utils.generic_error(e, code=500)
+    return utils.generic_error(error, code=500)
 
 
-@app.errorhandler(utils.WebOptionsError)
-def webopt_handler(e):
+@app.errorhandler(job.JobError)
+def webopt_handler(error):
     """ Something went wrong parsing web options """
-    return utils.generic_error(e, code=500)
+    return utils.generic_error(error, code=500)

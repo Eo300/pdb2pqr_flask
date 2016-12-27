@@ -5,7 +5,7 @@
   
   <p>{% if error %}<div class="error"><strong>Error:</strong> {{ error }}</div>{% endif %}</p>
 
-  <p>Your job status and results will appear <a href="/jobs/{{ job_id }}">here</a> shortly.</p>
+  <p>Your job status and results will appear <a href="/job/{{ job_id }}">here</a> shortly.</p>
 
   <hr/>
 
@@ -14,20 +14,11 @@
   <h3>Job ID</h3>
   <p>{{ job_id }}</p>
 
-  <h3>Job options</h3>
-  <dl>
-    {% for key, value in form.items() %}
-      <dt>{{ key }}</dt>
-      <dd>{{ value }}</dd>
+  <h3>Job files</h3>
+  <ul>
+    {% for name, url in job_files.items() %}
+      <li><a href="{{ url }}">{{ name }}</a></li>
     {% endfor %}
-  </dl>
-
-  <h3>Uploaded files</h3>
-  <dl>
-    {% for key, value in files.items() %}
-      <dt>{{ key }}</dt>
-      <dd><a href="{{ value }}">{{ value }}</a></dd>
-    {% endfor %}
-  </dl>
+  </ul>
 
 {% endblock %}

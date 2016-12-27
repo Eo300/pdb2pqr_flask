@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% block title %}PDB2PQR server: job {{ job_id }} status{% endblock %}
+{% block body %}
+  
+  <p>{% if error %}<div class="error"><strong>Error:</strong> {{ error }}</div>{% endif %}</p>
+
+  <h2>Job ID {{ job_id }}</h2>
+
+  <p>Status: {{ job_status }}
+
+  <p>Files:</p>
+
+  <ul>
+    {% for name, url in job_files.items() %}
+      <li><a href="{{ url }}">{{ name }}</a></li>
+    {% endfor %}
+  </ul>
+
+{% endblock %}

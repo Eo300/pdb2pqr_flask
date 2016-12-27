@@ -9,7 +9,6 @@ The code is not functional and is intended as a prototype.  Here are the current
 pip install --editable .
 export FLASK_APP=server
 export FLASK_DEBUG=1
-python -m flask setup
 python -m flask run
 ```
 
