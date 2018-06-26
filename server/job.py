@@ -10,6 +10,7 @@
 """
 import os.path
 import json
+import urllib
 from werkzeug.utils import secure_filename
 from flask import url_for, render_template
 from . import utils
@@ -81,9 +82,11 @@ class Job:
         self.pdb_file = self.file_dict.get("PDB")
         if pdb_source == "ID":
             if pdb_id:
-                errstr = "Want to fetch %s but..." % pdb_id
-                errstr = errstr + " Nathan needs to implement." 
-                raise NotImplementedError(errstr)
+                pdb_success = self.download_pdb()
+                if not pdb_success:
+                    errstr = "Please specify a valid PDB ID"
+                    raise JobError(errstr)
+                self.pdb_file = self.file_dict.get("PDB")
             else:
                 errstr = "Need to specify PDB ID."
                 raise JobError(errstr)
@@ -171,3 +174,25 @@ class Job:
                 file_path = os.path.join(job_dir, file_name)
                 file_obj.save(file_path)
             self.file_dict[key] = url_for("job_file", jobid=self.job_id, filename=file_name)
+
+    def download_pdb(self):
+        """ Download and stores the PDB file of the specified PDB ID """
+        job_dir = utils.local_job_dir(job_id=self.job_id, tmp_path=self.tmp_path)
+        pdb_id = self.req_form.get("PDBID")
+        URLpath = "https://files.rcsb.org/download/" + pdb_id + ".pdb"
+        try:
+            fin_pdb = urllib.urlopen(URLpath)
+            if fin_pdb.getcode() != 200 or 'nosuchfile' in fin_pdb.geturl():
+                raise IOError
+        except IOError:
+            return None                
+        
+        file_name = pdb_id+".pdb"
+        fout_pdb = open(job_dir + "/" + file_name, 'w')
+        for line in fin_pdb:
+            fout_pdb.write(line)
+        fout_pdb.close()
+
+        # Added to keep consistency with generated PQR file name
+        self.file_dict["PDB"] = url_for("job_file", jobid=self.job_id, filename=file_name)
+        return True
